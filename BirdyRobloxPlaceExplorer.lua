@@ -128,11 +128,14 @@ function generateTreeElements()
 	end
 	frameTopCnt = Instance.new("ScrollingFrame")
 	frameTopCnt.CanvasSize = UDim2.new(0,0,0,0)
+	frameTopCnt.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	frameTopCnt.Size = UDim2.new(1,0,1,-25)
 	frameTopCnt.Position = UDim2.new(0,0,0,25)
 	frameTopCnt.Parent = frameTop
+	local listft = Instance.new("UIListLayout")
+	listft.Parent = frameTopCnt
 	local licount = 0
-	local function addElementListItem(element:Instance,subw,showhidebutton:TextButton)
+	local function addElementListItem(element:Instance,subw,showhidebutton:TextButton,parentcf)
 		local qSearch = {element}
 		if subw == 0 then
 			local frame = Instance.new("Frame")
@@ -147,7 +150,7 @@ function generateTreeElements()
 			frame.Parent = frameTopCnt
 			local buttonCH = Instance.new("TextButton")
 			buttonCH.Size = UDim2.new(0,25,0,25)
-			buttonCH.Text = "-"
+			buttonCH.Text = "+"
 			buttonCH.Parent = frame
 			buttonelement.Size = UDim2.new(1,-50,1,0)
 			buttonelement.Position = UDim2.new(0,25,0,0)
@@ -211,18 +214,46 @@ function generateTreeElements()
 		end
 		--while #qSearch > 0 do
 		local childs = qSearch[1]:GetChildren()
+		local framechildspadding = Instance.new("Frame")
+		framechildspadding.Size = UDim2.new(0,0,0,0)
+		--framechildspadding.AutomaticSize = Enum.AutomaticSize.XY
+		framechildspadding.BorderSizePixel = 0
+		framechildspadding.BackgroundTransparency = 1
+		local childsFrame = Instance.new("Frame")
+		childsFrame.Position = UDim2.new(0,25,0,0)
+		childsFrame.Size = UDim2.new(1,0,0,0)
+		childsFrame.AutomaticSize = Enum.AutomaticSize.XY
+		childsFrame.Parent = framechildspadding
+		childsFrame.BorderSizePixel = 0
+		childsFrame.BackgroundTransparency = 1
+		childsFrame.Visible = false
+		local uilistchilds = Instance.new("UIListLayout")
+		uilistchilds.Parent = childsFrame
+		if parentcf then
+			framechildspadding.Parent = parentcf
+		else
+			framechildspadding.Parent = frameTopCnt
+		end
 		local frames = {}
 		if showhidebutton ~= nil then
 			showhidebutton.MouseButton1Click:Connect(function()
-				for _,frame:Frame in frames do
-					frame.Visible = not frame.Visible
-					if frame.Visible then
-						showhidebutton.Text = "-"
-					else
-						showhidebutton.Text = "+"
-					end
+				--for _,frame:Frame in frames do
+				--	frame.Visible = not frame.Visible
+				--	if frame.Visible then
+				--		showhidebutton.Text = "-"
+				--	else
+				--		showhidebutton.Text = "+"
+				--	end
+				--end
+				childsFrame.Visible = not childsFrame.Visible
+				if childsFrame.Visible then
+					showhidebutton.Text = "-"
+					framechildspadding.AutomaticSize = Enum.AutomaticSize.XY
+				else
+					showhidebutton.Text = "+"
+					framechildspadding.AutomaticSize = Enum.AutomaticSize.None
 				end
-				reposTree()
+				--reposTree()
 			end)
 		end
 		for _,elem:Instance in childs do
@@ -236,16 +267,16 @@ function generateTreeElements()
 				--	
 				--end
 				frameelem.Size = UDim2.new(0,225,0,25)-- offsetx -(subw * 10)
-				frameelem.Position = UDim2.new(0,subw * 25,0,licount * 25)
-				if frameTopCnt.CanvasSize.X.Offset < (subw * 25) + 225 then
-					frameTopCnt.CanvasSize = UDim2.new(0,(subw * 25) + 225,0,frameTopCnt.CanvasSize.Y.Offset)
-				end
-				frameTopCnt.CanvasSize += UDim2.new(0,0,0,25)
+				--frameelem.Position = UDim2.new(0,subw * 25,0,licount * 25)
+				--if frameTopCnt.CanvasSize.X.Offset < (subw * 25) + 225 then
+				--	frameTopCnt.CanvasSize = UDim2.new(0,(subw * 25) + 225,0,frameTopCnt.CanvasSize.Y.Offset)
+				--end
+				--frameTopCnt.CanvasSize += UDim2.new(0,0,0,25)
 				if (#elem:GetChildren() ~= 0) then
 					local buttonCH = Instance.new("TextButton")
 					buttonCH.Size = UDim2.new(0,25,0,25)
 					hh = buttonCH
-					buttonCH.Text = "-"
+					buttonCH.Text = "+"
 					buttonCH.Parent = frameelem
 					buttonelem.Size = UDim2.new(1,-50,1,0)
 					buttonelem.Position = UDim2.new(0,25,0,0)
@@ -307,7 +338,7 @@ function generateTreeElements()
 				end)
 				addButton.Parent = frameelem
 				buttonelem.Parent = frameelem
-				frameelem.Parent = frameTopCnt
+				frameelem.Parent = childsFrame
 				table.insert(frames,frameelem)
 				buttonelem.MouseButton1Click:Connect(function()
 					if frameBottomCnt ~= nil then
@@ -326,7 +357,6 @@ function generateTreeElements()
 					destroyButton.MouseButton1Click:Connect(function()
 						elem:Destroy()
 						frameelem:Destroy()
-						reposTree()
 					end)
 					local destroycButton = Instance.new("TextButton")
 					destroycButton.Size = UDim2.new(1,0,0,25)
@@ -371,52 +401,69 @@ function generateTreeElements()
 							textValue.Size = UDim2.new(0.5,0,1,0)
 							textValue.Position = UDim2.new(0.5,0,0,0)
 							textValue.TextSize = 14
-							if (typeof(elem[item]) == "string") or (typeof(elem[item]) == "number") then
-								textValue.Text = elem[item]
-							elseif (typeof(elem[item]) == "Enum") then
-								textValue.Text = elem[item].Value
-							elseif (typeof(elem[item]) == "boolean") then
-								if (elem[item] == true) then
-									textValue.Text = "true"
-								else
-									textValue.Text = "false"
-								end
-							elseif (typeof(elem[item]) == "Vector3") then
-								local vl:Vector3 = elem[item] 
-								textValue.Text = vl.X .. "," .. vl.Y .. "," .. vl.Z
-							elseif (typeof(elem[item]) == "UDim2") then
-								local vl:UDim2 = elem[item] 
-								textValue.Text = vl.X.Scale .. "," .. vl.X.Offset .. "," .. vl.Y.Scale .. "," .. vl.Y.Offset
-							elseif (typeof(elem[item]) == "UDim") then
-								local vl:UDim = elem[item] 
-								textValue.Text = vl.Scale .. "," .. vl.Offset
-							elseif (typeof(elem[item]) == "CFrame") then
-								local vl:CFrame = elem[item] 
-								textValue.Text = vl.Position.X .. "," .. vl.Position.Y .. "," .. vl.Position.Z .. "," .. vl.Rotation.X .. "," .. vl.Rotation.Y .. "," .. vl.Rotation.Z
-							elseif (typeof(elem[item]) == "Vector2") then
-								local vl:Vector2 = elem[item] 
-								textValue.Text = vl.X .. "," .. vl.Y
-							elseif (typeof(elem[item]) == "Color3") then
-								local vl:Color3 = elem[item] 
-								textValue.Text = vl.R .. "," .. vl.G .. "," .. vl.B
-							elseif (typeof(elem[item]) == "BrickColor") then
-								local vl:BrickColor = elem[item]
-								textValue.Text = vl.r .. "," .. vl.g .. "," .. vl.b
-							elseif (typeof(elem[item]) == "Instance") then
-								textValue.Text = elem[item].Name
-								textValue.Active = false
-								textValue.TextEditable = false
-							else
-								local success = pcall(function()
+							local function updatetext()
+								if (typeof(elem[item]) == "string") or (typeof(elem[item]) == "number") then
 									textValue.Text = elem[item]
-								end)
-								if not success then
-									pcall(function()
-										textValue.Text = elem[item].Value
+								elseif (typeof(elem[item]) == "Enum") then
+									textValue.Text = elem[item].Value
+								elseif (typeof(elem[item]) == "boolean") then
+									if (elem[item] == true) then
+										textValue.Text = "true"
+									else
+										textValue.Text = "false"
+									end
+								elseif (typeof(elem[item]) == "Vector3") then
+									local vl:Vector3 = elem[item] 
+									textValue.Text = vl.X .. "," .. vl.Y .. "," .. vl.Z
+								elseif (typeof(elem[item]) == "UDim2") then
+									local vl:UDim2 = elem[item] 
+									textValue.Text = vl.X.Scale .. "," .. vl.X.Offset .. "," .. vl.Y.Scale .. "," .. vl.Y.Offset
+								elseif (typeof(elem[item]) == "UDim") then
+									local vl:UDim = elem[item] 
+									textValue.Text = vl.Scale .. "," .. vl.Offset
+								elseif (typeof(elem[item]) == "CFrame") then
+									local vl:CFrame = elem[item] 
+									textValue.Text = vl.Position.X .. "," .. vl.Position.Y .. "," .. vl.Position.Z .. "," .. vl.Rotation.X .. "," .. vl.Rotation.Y .. "," .. vl.Rotation.Z
+								elseif (typeof(elem[item]) == "Vector2") then
+									local vl:Vector2 = elem[item] 
+									textValue.Text = vl.X .. "," .. vl.Y
+								elseif (typeof(elem[item]) == "Color3") then
+									local vl:Color3 = elem[item] 
+									textValue.Text = vl.R .. "," .. vl.G .. "," .. vl.B
+								elseif (typeof(elem[item]) == "BrickColor") then
+									local vl:BrickColor = elem[item]
+									textValue.Text = vl.r .. "," .. vl.g .. "," .. vl.b
+								elseif (typeof(elem[item]) == "Instance") then
+									textValue.Text = elem[item].Name
+									textValue.Active = false
+									textValue.TextEditable = false
+								else
+									local success = pcall(function()
+										textValue.Text = elem[item]
 									end)
+									if not success then
+										pcall(function()
+											textValue.Text = elem[item].Value
+										end)
+									end
 								end
+								oldtb = textValue.Text
 							end
-							oldtb = textValue.Text
+							local updatetextallowed = true
+							textValue.Focused:Connect(function()
+								updatetextallowed = false
+							end)
+							textValue.FocusLost:Connect(function()
+								updatetextallowed = true
+								updatetext()
+							end)
+							elem:GetPropertyChangedSignal(item):Connect(function()
+								if updatetextallowed then
+									updatetext()
+								end
+							end)
+							--elem[item].Changed:Connect(updatetext)
+							updatetext()
 							textValue.ClearTextOnFocus = false
 							textValue.Parent = frameItem
 							textValue.Changed:Connect(function()
@@ -471,7 +518,7 @@ function generateTreeElements()
 			end
 			if (elem ~= guiScreen) then
 				pcall(function()
-					local frams = addElementListItem(elem,subw + 1,hh)
+					local frams = addElementListItem(elem,subw + 1,hh,childsFrame)
 					for _,fram in frams do
 						table.insert(frames,fram)
 					end
