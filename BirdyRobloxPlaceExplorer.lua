@@ -58,7 +58,7 @@ function openCloseSidebar()
 	end
 end
 UserInputService.InputBegan:Connect(function(input,gpe)
-	if input.KeyCode == Enum.KeyCode.K then
+	if input.KeyCode == Enum.KeyCode.K and gpe == false then
 		openCloseSidebar()
 	end
 end)
@@ -234,7 +234,6 @@ function generateTreeElements()
 		else
 			framechildspadding.Parent = frameTopCnt
 		end
-		local frames = {}
 		if showhidebutton ~= nil then
 			showhidebutton.MouseButton1Click:Connect(function()
 				--for _,frame:Frame in frames do
@@ -339,7 +338,6 @@ function generateTreeElements()
 				addButton.Parent = frameelem
 				buttonelem.Parent = frameelem
 				frameelem.Parent = childsFrame
-				table.insert(frames,frameelem)
 				buttonelem.MouseButton1Click:Connect(function()
 					if frameBottomCnt ~= nil then
 						frameBottomCnt:Destroy()
@@ -348,7 +346,10 @@ function generateTreeElements()
 					frameBottomCnt.CanvasSize = UDim2.new(1,0,0,0)
 					frameBottomCnt.Size = UDim2.new(1,0,1,0)
 					frameBottomCnt.Position = UDim2.new(0,0,0,0)
+					frameBottomCnt.AutomaticCanvasSize = Enum.AutomaticSize.XY
 					frameBottomCnt.Parent = frameBottom
+					local uilistprops = Instance.new("UIListLayout")
+					uilistprops.Parent = frameBottomCnt
 					local destroyButton = Instance.new("TextButton")
 					destroyButton.Size = UDim2.new(1,0,0,25)
 					destroyButton.TextSize = 14
@@ -360,7 +361,6 @@ function generateTreeElements()
 					end)
 					local destroycButton = Instance.new("TextButton")
 					destroycButton.Size = UDim2.new(1,0,0,25)
-					destroycButton.Position = UDim2.new(0,0,0,25)
 					destroycButton.TextSize = 14
 					destroycButton.Text = "Destroy Childs Only"
 					destroycButton.Parent = frameBottomCnt
@@ -389,7 +389,7 @@ function generateTreeElements()
 							end
 							local frameItem = Instance.new("Frame")
 							frameItem.Size = UDim2.new(1,0,0,25)
-							frameItem.Position = UDim2.new(0,0,0,25 * lipcount)
+							frameItem.AutomaticSize = Enum.AutomaticSize.Y
 							frameItem.Parent = frameBottomCnt
 							local labelName = Instance.new("TextLabel")
 							labelName.Text = item
@@ -399,6 +399,7 @@ function generateTreeElements()
 							local oldtb
 							local textValue = Instance.new("TextBox")
 							textValue.Size = UDim2.new(0.5,0,1,0)
+							textValue.AutomaticSize = Enum.AutomaticSize.Y
 							textValue.Position = UDim2.new(0.5,0,0,0)
 							textValue.TextSize = 14
 							local function updatetext()
@@ -457,10 +458,12 @@ function generateTreeElements()
 								updatetextallowed = true
 								updatetext()
 							end)
-							elem:GetPropertyChangedSignal(item):Connect(function()
-								if updatetextallowed then
-									updatetext()
-								end
+							pcall(function()
+								elem:GetPropertyChangedSignal(item):Connect(function()
+									if updatetextallowed then
+										updatetext()
+									end
+								end)
 							end)
 							--elem[item].Changed:Connect(updatetext)
 							updatetext()
@@ -507,7 +510,6 @@ function generateTreeElements()
 								end
 								oldtb = textValue.Text
 							end)
-							frameBottomCnt.CanvasSize += UDim2.new(0,0,0,25)
 							lipcount += 1
 						end
 					end
@@ -519,32 +521,18 @@ function generateTreeElements()
 			if (elem ~= guiScreen) then
 				pcall(function()
 					local frams = addElementListItem(elem,subw + 1,hh,childsFrame)
-					for _,fram in frams do
-						table.insert(frames,fram)
-					end
 				end)
 			end
 			--table.insert(qSearch,elem)
 		end
 		--	table.remove(qSearch,1)
 		--end
-		return frames
 	end
 	addElementListItem(workspace,0)
 	pcall(function() addElementListItem(game.ServerStorage,0) end)
 	addElementListItem(game.ReplicatedStorage,0)
 	addElementListItem(game.Lighting,0)
 	addElementListItem(playerGUI,0)
-end
-function reposTree()
-	local licount = 0
-	for _,item:Frame in frameTopCnt:GetChildren() do
-		if item.Visible then
-			item.Position = UDim2.new(item.Position.X.Scale,item.Position.X.Offset,0,licount * 25)
-			licount += 1
-		end
-	end
-	frameTopCnt.CanvasSize = UDim2.new(frameTopCnt.CanvasSize.X.Scale,frameTopCnt.CanvasSize.X.Offset,0,licount * 25)
 end
 local oldtbSearch = ""
 textboxSearch.Changed:Connect(function()
