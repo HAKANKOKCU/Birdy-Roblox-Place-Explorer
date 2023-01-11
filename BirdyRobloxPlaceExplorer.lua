@@ -12,7 +12,6 @@ return function explorer(player)
 	}
 	local TweenSevice = game.TweenService
 	--local player = game.Players.LocalPlayer
-	local UserInputService = game.UserInputService
 	local playerGUI = player.PlayerGui
 	local isOpened = false
 	local guiScreen = Instance.new("ScreenGui")
@@ -58,10 +57,13 @@ return function explorer(player)
 			openSidebar()
 		end
 	end
-	UserInputService.InputBegan:Connect(function(input,gpe)
-		if input.KeyCode == Enum.KeyCode.K and gpe == false then
-			openCloseSidebar()
-		end
+	pcall(function()
+		local UserInputService = game.UserInputService
+		UserInputService.InputBegan:Connect(function(input,gpe)
+			if input.KeyCode == Enum.KeyCode.K and gpe == false then
+				openCloseSidebar()
+			end
+		end)
 	end)
 	openhideButton.MouseButton1Click:Connect(openCloseSidebar)
 	openhideButton.Size = UDim2.new(0,25,0,25)
